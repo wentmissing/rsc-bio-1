@@ -465,6 +465,18 @@
         "socials": {
           "discord": "1274180081383772187"
         }
+      },
+      {
+        "name": "test",
+        "displayName": "test",
+        "bio": "test",
+        "badges": [
+          "member"
+        ],
+        "icon": "https://images-ext-1.discordapp.net/external/wvBKUbzNb-cQPGiX98eOA7pYbG94ZShfwn3ttPZQDJw/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/800444441671761922/c2f7d852a40416772186b5d335759cad.png?format=webp&quality=lossless",
+        "socials": {
+          "discord": "1078313475727691787"
+        }
       }
     ]
   },
@@ -552,19 +564,5 @@
         "link": "https://soundcloud.com/"
       }
     }
-  },
-  "members": [
-    {
-      "name": "test",
-      "displayName": "test",
-      "bio": "test",
-      "badges": [
-        "member"
-      ],
-      "icon": "https://images-ext-1.discordapp.net/external/wvBKUbzNb-cQPGiX98eOA7pYbG94ZShfwn3ttPZQDJw/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/800444441671761922/c2f7d852a40416772186b5d335759cad.png?format=webp&quality=lossless",
-      "socials": {
-        "discord": "1078313475727691787"
-      }
-    }
-  ]
+  }
 }
