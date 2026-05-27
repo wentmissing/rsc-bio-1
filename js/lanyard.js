@@ -8,6 +8,9 @@ class LanyardIntegration {
         this.maxRetries = 5;
         this.retryDelay = 3000;
         this.isReorderScheduled = false;
+        this.pollIntervalId = null;
+        this.presenceApiUrl = null;
+        this.presencePollInterval = 30000;
 
         this.discordIds = {};
         
@@ -19,6 +22,10 @@ class LanyardIntegration {
         if (window.configLoader) {
             await window.configLoader.load();
             this.discordIds = window.configLoader.getAllDiscordIds();
+            this.presenceApiUrl = window.configLoader.config?.config?.presenceApiUrl
+                || window.configLoader.config?.config?.lanyard?.presenceApiUrl
+                || null;
+            this.presencePollInterval = window.configLoader.config?.config?.presencePollInterval || 30000;
         }
 
         if (document.readyState === 'loading') {
@@ -50,12 +57,50 @@ class LanyardIntegration {
             if (discordId) {
 
                 this.addStatusIndicator(card);
-
-                this.connectToLanyard(memberName, discordId);
             }
         });
 
+        if (this.presenceApiUrl) {
+            this.startPresencePolling();
+        } else {
+            cards.forEach(card => {
+                const memberName = card.getAttribute('data-member');
+                const discordId = this.discordIds[memberName];
+                if (discordId && !this.websockets.has(memberName)) {
+                    this.connectToLanyard(memberName, discordId);
+                }
+            });
+        }
+
         this.scheduleMemberReorder();
+    }
+
+    startPresencePolling() {
+        if (this.pollIntervalId) {
+            return;
+        }
+
+        const poll = async () => {
+            try {
+                const response = await fetch(this.presenceApiUrl, { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`Presence request failed with ${response.status}`);
+                }
+
+                const payload = await response.json();
+                const members = payload?.members || payload?.users || payload;
+                Object.entries(members || {}).forEach(([memberName, presenceData]) => {
+                    if (presenceData) {
+                        this.updateUserPresence(memberName, presenceData);
+                    }
+                });
+            } catch (error) {
+                console.error('[Lanyard] Presence polling failed:', error);
+            }
+        };
+
+        poll();
+        this.pollIntervalId = window.setInterval(poll, this.presencePollInterval);
     }
 
     ensureOriginalMemberOrder() {
@@ -268,6 +313,10 @@ class LanyardIntegration {
     }
 
     destroy() {
+        if (this.pollIntervalId) {
+            clearInterval(this.pollIntervalId);
+            this.pollIntervalId = null;
+        }
         this.websockets.forEach((ws, memberName) => {
             ws.close();
         });
@@ -277,7 +326,12 @@ class LanyardIntegration {
 }
 
 let lanyardIntegration;
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        lanyardIntegration = new LanyardIntegration();
+        window.lanyardIntegration = lanyardIntegration;
+    }, { once: true });
+} else if (!window.lanyardIntegration) {
     lanyardIntegration = new LanyardIntegration();
     window.lanyardIntegration = lanyardIntegration;
-});
+}

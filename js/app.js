@@ -5,6 +5,8 @@ class RSCApp {
         this.isMuted = false;
         this.currentVolume = 25;
         this.theme = localStorage.getItem('rsc-theme') || 'dark';
+        this.scriptPromises = new Map();
+        this.visualizerSync = null;
 
         this.init();
     }
@@ -24,6 +26,79 @@ class RSCApp {
         document.addEventListener('cardsGenerated', () => {
             this.setupAnimations();
         });
+
+        this.ensureRouteFeatures();
+    }
+
+    loadScript(src) {
+        if (this.scriptPromises.has(src)) {
+            return this.scriptPromises.get(src);
+        }
+
+        const existingScript = document.querySelector(`script[src="${src}"]`);
+        if (existingScript) {
+            const resolved = Promise.resolve();
+            this.scriptPromises.set(src, resolved);
+            return resolved;
+        }
+
+        const promise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.defer = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error(`Failed to load ${src}`));
+            document.head.appendChild(script);
+        });
+
+        this.scriptPromises.set(src, promise);
+        return promise;
+    }
+
+    ensureMusicFeature() {
+        return this.loadScript('js/profile-music.js');
+    }
+
+    ensureCardClickFeature() {
+        return this.loadScript('js/card-click.js');
+    }
+
+    ensurePresenceFeature() {
+        return this.loadScript('js/lanyard.js');
+    }
+
+    ensureScoresFeature() {
+        return this.loadScript('js/scores.js');
+    }
+
+    ensureSectionFeatures(sectionId) {
+        if (sectionId === 'founders') {
+            this.ensureCardClickFeature();
+            this.ensureMusicFeature();
+            return;
+        }
+
+        if (sectionId === 'members') {
+            this.ensureCardClickFeature();
+            this.ensureMusicFeature();
+            this.ensurePresenceFeature();
+            return;
+        }
+
+        if (sectionId === 'scores') {
+            this.ensureScoresFeature();
+        }
+    }
+
+    ensureRouteFeatures() {
+        const memberPath = window.location.pathname.replace(/^\//, '');
+        if (!memberPath || memberPath.includes('.') || memberPath.includes('/')) {
+            return;
+        }
+
+        this.ensureCardClickFeature();
+        this.ensureMusicFeature();
+        this.ensurePresenceFeature();
     }
 
     async setupLiveStats() {
@@ -188,6 +263,7 @@ class RSCApp {
         const navLinks = document.querySelectorAll('.nav-link');
 
         window.showSection = (sectionId) => {
+            this.ensureSectionFeatures(sectionId);
             sections.forEach(section => section.classList.remove('active'));
             const targetSection = document.getElementById(sectionId);
             if (targetSection) {
@@ -242,7 +318,7 @@ class RSCApp {
         const volumeSlider = document.getElementById('volumeSlider');
         const volumeValue = document.querySelector('.volume-value');
 
-        muteBtn.addEventListener('click', () => {
+        muteBtn.addEventListener('click', async () => {
             this.isMuted = !this.isMuted;
 
             if (this.isMuted) {
@@ -252,6 +328,7 @@ class RSCApp {
                 }
             } else {
                 muteBtn.classList.remove('muted');
+                await this.ensureMusicFeature();
                 if (window.profileMusicPlayer) {
                     window.profileMusicPlayer.setMuted(false);
                     window.profileMusicPlayer.initAnthem();
@@ -279,9 +356,9 @@ class RSCApp {
         });
     }
 
-    initAudio() {
+    async initAudio() {
         if (!this.isAudioInitialized && !this.isMuted) {
-
+            await this.ensureMusicFeature();
             if (window.profileMusicPlayer) {
                 window.profileMusicPlayer.initAnthem();
             }
@@ -361,6 +438,8 @@ class RSCApp {
 
         let bars = [];
         const barCount = 50;
+        let animationFrameId = null;
+        let isAnimating = false;
 
         for (let i = 0; i < barCount; i++) {
             bars.push({
@@ -371,6 +450,20 @@ class RSCApp {
         }
 
         const animate = () => {
+            if (!isAnimating) {
+                return;
+            }
+
+            if (!this.shouldRunVisualizer()) {
+                isAnimating = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             bars.forEach((bar, i) => {
@@ -388,10 +481,28 @@ class RSCApp {
                 ctx.fillRect(bar.x, canvas.height - bar.height, canvas.width / barCount - 2, bar.height);
             });
 
-            requestAnimationFrame(animate);
+            animationFrameId = requestAnimationFrame(animate);
         };
 
-        animate();
+        this.visualizerSync = () => {
+            if (this.shouldRunVisualizer()) {
+                if (!isAnimating) {
+                    isAnimating = true;
+                    animate();
+                }
+            } else {
+                isAnimating = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        };
+
+        document.addEventListener('visibilitychange', this.visualizerSync);
+        document.addEventListener('musicstatechange', this.visualizerSync);
+        this.visualizerSync();
 
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
@@ -399,7 +510,18 @@ class RSCApp {
                 ...bar,
                 x: (canvas.width / barCount) * i
             }));
+            if (this.visualizerSync) {
+                this.visualizerSync();
+            }
         });
+    }
+
+    shouldRunVisualizer() {
+        if (document.hidden || this.isMuted) {
+            return false;
+        }
+
+        return Boolean(window.profileMusicPlayer && window.profileMusicPlayer.hasActivePlayback());
     }
 
 

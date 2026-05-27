@@ -5,6 +5,8 @@ class ProfileMusicPlayer {
         this.audioCache = new Map();
         this.isMuted = false;
         this.anthem = null;
+        this.anthemPath = window.configLoader?.config?.config?.anthemUrl
+            || 'https://github.com/zoxycontin/rsc-bio/raw/refs/heads/main/assets/songs/anthem.mp3';
         this.isPlayingProfile = false;
         this.fadeOutDuration = 300; // ms
         this.fadeInDuration = 1500; // ms (1.5 seconds)
@@ -14,14 +16,10 @@ class ProfileMusicPlayer {
     }
 
     init() {
-
-        this.anthem = new Audio('https://github.com/zoxycontin/rsc-bio/raw/refs/heads/main/assets/songs/anthem.mp3');
-        this.anthem.loop = true;
-        this.anthem.volume = 0.25;
-
         document.addEventListener('cardsGenerated', () => this.setupCardListeners());
 
         this.setupCardListeners();
+        this.emitPlaybackState();
     }
 
     setupCardListeners() {
@@ -33,9 +31,6 @@ class ProfileMusicPlayer {
             
             const musicPath = card.dataset.music;
             if (musicPath) {
-
-                this.preloadAudio(musicPath);
-
                 card.addEventListener('mouseenter', () => {
                     this.playMusic(musicPath);
                 });
@@ -43,14 +38,28 @@ class ProfileMusicPlayer {
         });
     }
 
-    preloadAudio(musicPath) {
+    getAudio(musicPath) {
         if (!this.audioCache.has(musicPath)) {
             const audio = new Audio(musicPath);
-            audio.preload = 'auto';
+            audio.preload = 'metadata';
             audio.volume = 0.25;
             audio.loop = true;
             this.audioCache.set(musicPath, audio);
         }
+
+        return this.audioCache.get(musicPath);
+    }
+
+    ensureAnthem() {
+        if (this.anthem) {
+            return this.anthem;
+        }
+
+        this.anthem = new Audio(this.anthemPath);
+        this.anthem.preload = 'metadata';
+        this.anthem.loop = true;
+        this.anthem.volume = 0.25;
+        return this.anthem;
     }
 
     playMusic(musicPath) {
@@ -68,7 +77,7 @@ class ProfileMusicPlayer {
             this.fadeOut(this.anthem);
         }
         
-        const audio = this.audioCache.get(musicPath);
+        const audio = this.getAudio(musicPath);
         if (audio) {
             this.currentAudio = audio;
             this.currentMusicPath = musicPath;
@@ -83,6 +92,7 @@ class ProfileMusicPlayer {
             this.fadeIn(audio);
 
             this.updateNowPlaying(musicPath);
+            this.emitPlaybackState();
         }
     }
 
@@ -94,6 +104,7 @@ class ProfileMusicPlayer {
             this.currentMusicPath = null;
             this.isPlayingProfile = false;
         }
+        this.emitPlaybackState();
     }
 
     fadeOut(audio) {
@@ -141,18 +152,20 @@ class ProfileMusicPlayer {
             this.fadeOut(this.currentAudio);
         }
         
-        if (this.anthem) {
+        const anthem = this.ensureAnthem();
+        if (anthem) {
             this.currentAudio = null;
             this.currentMusicPath = null;
             this.isPlayingProfile = false;
-            this.anthem.currentTime = 0;
-            this.anthem.volume = 0;
-            this.anthem.play().catch(error => {
+            anthem.currentTime = 0;
+            anthem.volume = 0;
+            anthem.play().catch(error => {
                 console.log("Anthem play failed:", error);
             });
 
-            this.fadeIn(this.anthem);
+            this.fadeIn(anthem);
             this.updateNowPlaying('anthem');
+            this.emitPlaybackState();
         }
     }
     
@@ -177,17 +190,41 @@ class ProfileMusicPlayer {
                 this.anthem.pause();
             }
         }
+        this.emitPlaybackState();
     }
 
     initAnthem() {
-        if (!this.isMuted && this.anthem && !this.isPlayingProfile) {
-            this.anthem.play().catch(error => {
+        const anthem = this.ensureAnthem();
+        if (!this.isMuted && anthem && !this.isPlayingProfile) {
+            anthem.play().catch(error => {
                 console.log("Anthem autoplay failed:", error);
             });
+            this.emitPlaybackState();
         }
+    }
+
+    hasActivePlayback() {
+        return Boolean(
+            (!this.isMuted && this.currentAudio && !this.currentAudio.paused) ||
+            (!this.isMuted && this.anthem && !this.isPlayingProfile && !this.anthem.paused)
+        );
+    }
+
+    emitPlaybackState() {
+        document.dispatchEvent(new CustomEvent('musicstatechange', {
+            detail: {
+                hasActivePlayback: this.hasActivePlayback(),
+                currentMusicPath: this.currentMusicPath,
+                isMuted: this.isMuted
+            }
+        }));
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.profileMusicPlayer = new ProfileMusicPlayer();
+    }, { once: true });
+} else if (!window.profileMusicPlayer) {
     window.profileMusicPlayer = new ProfileMusicPlayer();
-});
+}

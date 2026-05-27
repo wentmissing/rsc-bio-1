@@ -96,6 +96,22 @@ class ConfigLoader {
     getBadgesPath() {
         return this.config?.config?.badgesPath || 'assets/badges/';
     }
+
+    resolveAssetUrl(assetPath) {
+        if (!assetPath || typeof assetPath !== 'string') return assetPath;
+
+        if (/^(?:[a-z]+:)?\/\//i.test(assetPath) || assetPath.startsWith('data:')) {
+            return assetPath;
+        }
+
+        const assetBaseUrl = this.config?.config?.assetBaseUrl;
+        if (!assetBaseUrl) {
+            return assetPath;
+        }
+
+        const normalizedBase = assetBaseUrl.endsWith('/') ? assetBaseUrl : `${assetBaseUrl}/`;
+        return new URL(assetPath.replace(/^\/+/, ''), normalizedBase).toString();
+    }
 }
 
 window.configLoader = new ConfigLoader();

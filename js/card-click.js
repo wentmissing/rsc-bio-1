@@ -342,7 +342,7 @@ class CardClickHandler {
             return `
                 <a href="${href}" target="_blank" rel="noopener noreferrer"
                    class="social-link" aria-label="${label}">
-                    <img src="${icon}" alt="${label}">
+                    <img src="${window.configLoader.resolveAssetUrl(icon)}" alt="${label}" loading="lazy" decoding="async">
                 </a>
             `;
         }).filter(Boolean).join('');
@@ -361,7 +361,7 @@ class CardClickHandler {
             if (badges.length > 0) {
                 return badges.map(badge => {
                     return `<div class="badge-wrapper">
-                        <img src="${badgesPath}${badge.file}" alt="${badge.displayName}" class="badge-icon">
+                        <img src="${window.configLoader.resolveAssetUrl(`${badgesPath}${badge.file}`)}" alt="${badge.displayName}" class="badge-icon" loading="lazy" decoding="async">
                         <span class="badge-tooltip">${badge.displayName}</span>
                     </div>`;
                 }).join('');
@@ -499,6 +499,12 @@ class CardClickHandler {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.cardClickHandler) {
+            new CardClickHandler();
+        }
+    }, { once: true });
+} else if (!window.cardClickHandler) {
     new CardClickHandler();
-});
+}

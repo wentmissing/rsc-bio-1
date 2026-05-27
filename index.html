@@ -24,6 +24,7 @@
     <script src="js/typing-text.js" defer></script>
     <script src="js/card-click.js" defer></script>
     <script src="js/lanyard.js" defer></script>
+    <script src="js/scores.js" defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:title" content="Really Silly Club">
@@ -55,8 +56,8 @@
                 <a href="#members" onclick="showSection('members'); return false;" class="nav-link">
                     <span>members</span>
                 </a>
-                <a href="#shop" onclick="showSection('shop'); return false;" class="nav-link">
-                    <span>shop</span>
+                <a href="#scores" onclick="showSection('scores'); return false;" class="nav-link">
+                    <span>scores</span>
                 </a>
                 <a href="https://discord.gg/442jszx9ae" target="_blank" rel="noopener noreferrer" class="nav-link">
                     <span>discord</span>
@@ -122,9 +123,94 @@
         </div>
 
         
-        <div id="shop" class="content-section">
-            <div class="coming-soon">
-                <h2>COMING SOON</h2>
+        <div id="scores" class="content-section">
+            <h2 class="section-title">
+                <span class="title-text">Scores</span>
+                <span class="title-underline"></span>
+            </h2>
+
+            <div class="scores-layout">
+                <section class="scores-column recent-scores">
+                    <h3 class="scores-heading">Recent Scores</h3>
+                    <div class="scores-list recent-list">
+                        <article class="score-card">
+                            <div class="score-rank">#12</div>
+                            <div class="score-info">
+                                <span class="score-player">cake</span>
+                                <span class="score-map">MEGALOVANIA [Extreme]</span>
+                            </div>
+                            <div class="score-value">1,204 rp</div>
+                        </article>
+                        <article class="score-card">
+                            <div class="score-rank">#7</div>
+                            <div class="score-info">
+                                <span class="score-player">player2</span>
+                                <span class="score-map">Galaxy Collapse [Insane]</span>
+                            </div>
+                            <div class="score-value">982 rp</div>
+                        </article>
+                        <article class="score-card">
+                            <div class="score-rank">#23</div>
+                            <div class="score-info">
+                                <span class="score-player">rhythmking</span>
+                                <span class="score-map">Blue Zenith [Four Dimensions]</span>
+                            </div>
+                            <div class="score-value">871 rp</div>
+                        </article>
+                        <article class="score-card">
+                            <div class="score-rank">#3</div>
+                            <div class="score-info">
+                                <span class="score-player">sillygoose</span>
+                                <span class="score-map">Yomi Yori [Depths]</span>
+                            </div>
+                            <div class="score-value">756 rp</div>
+                        </article>
+                        <article class="score-card">
+                            <div class="score-rank">#41</div>
+                            <div class="score-info">
+                                <span class="score-player">beatsmasher</span>
+                                <span class="score-map">Sidetracked Day [Infinity]</span>
+                            </div>
+                            <div class="score-value">643 rp</div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="scores-column top-scores">
+                    <h3 class="scores-heading">Top Scores</h3>
+                    <ol class="top-scores-list">
+                        <li class="top-score-item">
+                            <article class="score-card top-score-card">
+                                <div class="top-score-medal">🥇</div>
+                                <div class="score-info">
+                                    <span class="score-player">cake</span>
+                                    <span class="score-map">MEGALOVANIA [Extreme]</span>
+                                </div>
+                                <div class="score-value accent">1,204 rp</div>
+                            </article>
+                        </li>
+                        <li class="top-score-item">
+                            <article class="score-card top-score-card">
+                                <div class="top-score-medal">🥈</div>
+                                <div class="score-info">
+                                    <span class="score-player">player2</span>
+                                    <span class="score-map">Galaxy Collapse [Insane]</span>
+                                </div>
+                                <div class="score-value">982 rp</div>
+                            </article>
+                        </li>
+                        <li class="top-score-item">
+                            <article class="score-card top-score-card">
+                                <div class="top-score-medal">🥉</div>
+                                <div class="score-info">
+                                    <span class="score-player">sillygoose</span>
+                                    <span class="score-map">Yomi Yori [Depths]</span>
+                                </div>
+                                <div class="score-value">756 rp</div>
+                            </article>
+                        </li>
+                    </ol>
+                </section>
             </div>
         </div>
     </main>

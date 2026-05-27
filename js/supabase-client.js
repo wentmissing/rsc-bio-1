@@ -129,6 +129,115 @@ class SupabaseService {
 
         return data?.metric_value ?? 0;
     }
+
+    async getRecentScores(limit = 5) {
+        if (!this.enabled) return [];
+
+        const { data, error } = await this.client
+            .from('scores')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('[Supabase] Failed to fetch recent scores:', error.message);
+            return [];
+        }
+        return data ?? [];
+    }
+
+    async getTopScores(limit = 3) {
+        if (!this.enabled) return [];
+
+        const { data, error } = await this.client
+            .from('scores')
+            .select('*')
+            .order('awarded_sp', { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('[Supabase] Failed to fetch top scores:', error.message);
+            return [];
+        }
+        return data ?? [];
+    }
+
+    async getMemberRecentScores({ rhythiaUserId = null, username = null, limit = 5 } = {}) {
+        if (!this.enabled) return [];
+
+        const byId = await this.queryScoresByUserId(rhythiaUserId, 'created_at', limit);
+        if (byId.length) {
+            return byId;
+        }
+
+        return this.queryScoresByUsername(username, 'created_at', limit);
+    }
+
+    async getMemberTopScores({ rhythiaUserId = null, username = null, limit = 5 } = {}) {
+        if (!this.enabled) return [];
+
+        const byId = await this.queryScoresByUserId(rhythiaUserId, 'awarded_sp', limit);
+        if (byId.length) {
+            return byId;
+        }
+
+        return this.queryScoresByUsername(username, 'awarded_sp', limit);
+    }
+
+    async queryScoresByUserId(rhythiaUserId, orderColumn, limit) {
+        if (!rhythiaUserId) return [];
+
+        const { data, error } = await this.client
+            .from('scores')
+            .select('*')
+            .eq('user_id', String(rhythiaUserId))
+            .order(orderColumn, { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('[Supabase] Failed to fetch member scores by user_id:', error.message);
+            return [];
+        }
+
+        return data ?? [];
+    }
+
+    async queryScoresByUsername(username, orderColumn, limit) {
+        if (!username) return [];
+
+        const normalized = String(username).trim();
+        if (!normalized) return [];
+
+        let { data, error } = await this.client
+            .from('scores')
+            .select('*')
+            .eq('username', normalized)
+            .order(orderColumn, { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('[Supabase] Failed to fetch member scores by username:', error.message);
+            return [];
+        }
+
+        if (data && data.length) {
+            return data;
+        }
+
+        ({ data, error } = await this.client
+            .from('scores')
+            .select('*')
+            .ilike('username', normalized)
+            .order(orderColumn, { ascending: false })
+            .limit(limit));
+
+        if (error) {
+            console.error('[Supabase] Failed to fetch member scores by username (ilike):', error.message);
+            return [];
+        }
+
+        return data ?? [];
+    }
 }
 
 window.supabaseService = new SupabaseService();

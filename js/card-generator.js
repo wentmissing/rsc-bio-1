@@ -43,14 +43,17 @@ class CardGenerator {
         card.className = 'card';
         card.setAttribute('data-member', profile.name);
         if (profile.music) {
-            card.setAttribute('data-music', profile.music);
+            const musicPath = window.configLoader?.resolveAssetUrl(profile.music) || profile.music;
+            card.setAttribute('data-music', musicPath);
         }
+
+        const iconPath = window.configLoader?.resolveAssetUrl(profile.icon) || profile.icon;
 
         card.innerHTML = `
             <div class="card-glow"></div>
             <div class="profile">
                 <div class="profile-img-container">
-                    <img src="${profile.icon}" alt="${profile.displayName} profile" class="profile-img">
+                    <img src="${iconPath}" alt="${profile.displayName} profile" class="profile-img" loading="lazy" decoding="async" fetchpriority="low">
                     <div class="status-indicator" data-status="offline" title="Offline"></div>
                 </div>
                 <div class="name-tag">

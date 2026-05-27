@@ -131,7 +131,7 @@
                 "name": "Zee",
                 "displayName": "Zee",
                 "bio": "best canadian",
-                "badges": ["dedicatedrsc", "member"],
+                "badges": ["member", "dedicatedrsc", "moderator"],
                 "icon": "assets/members/zeepfp.webp",
                 "socials": {
                     "discord":"706632789732873748",
@@ -358,11 +358,15 @@
             {
                 "name": "blossom",
                 "displayName": "blossom",
-                "bio": "meow",
-                "badges": ["member"],
+                "bio": "(✿◠‿◠)",
+                "badges": ["member", "dedicatedrsc", "moderator"],
                 "icon": "assets/members/blossompfp.webp",
                 "socials": {
-                    "discord": "492506505313255433"
+                    "discord": "1078313475727691787",
+                    "roblox": "806824",
+                    "rhythia": "105610",
+                    "steam": "blossybuns",
+                    "tiktok": "blossybuns"
                 }
             },
             {
