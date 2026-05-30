@@ -431,30 +431,6 @@
         }
       },
       {
-        "name": "cunev",
-        "displayName": "cunev",
-        "bio": "steam rhythia goat",
-        "badges": [
-          "member"
-        ],
-        "icon": "assets/members/cunevpfp.webp",
-        "socials": {
-          "discord": "981345633308921886"
-        }
-      },
-      {
-        "name": "blossom",
-        "displayName": "blossom",
-        "bio": "meow",
-        "badges": [
-          "member"
-        ],
-        "icon": "assets/members/blossompfp.webp",
-        "socials": {
-          "discord": "492506505313255433"
-        }
-      },
-      {
         "name": "mort",
         "displayName": "mort",
         "bio": "OOOOOOOOOH KING JULIANNNNNNNNNNNNNNNNNNNNNN",
@@ -468,15 +444,17 @@
         }
       },
       {
-        "name": "test",
-        "displayName": "test",
-        "bio": "test",
+        "name": "sillyware",
+        "displayName": "sillyware",
+        "bio": "literally the silliest",
         "badges": [
           "member"
         ],
-        "icon": "https://images-ext-1.discordapp.net/external/wvBKUbzNb-cQPGiX98eOA7pYbG94ZShfwn3ttPZQDJw/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/800444441671761922/c2f7d852a40416772186b5d335759cad.png?format=webp&quality=lossless",
+        "icon": "assets/members/sillywarepfp.png",
+        "music": "assets/songs/sillyware-theme.mp3",
         "socials": {
-          "discord": "1078313475727691787"
+          "discord": "819406749231742976",
+          "roblox": "2652172"
         }
       }
     ]
